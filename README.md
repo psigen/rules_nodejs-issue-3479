@@ -16,6 +16,7 @@ target contains identical source code and BUILD definition to the target in
 We can see this with the following commands:
 
 **`$ cd ext_ws && bazel run //:bin`**
+
 ```bash
 INFO: Analyzed target //:bin (0 packages loaded, 0 targets configured).
 INFO: Found 1 target...
@@ -31,6 +32,7 @@ Hello world? Hello world.
 ```
 
 **`$ cd main_ws && bazel run //:bin`**
+
 ```bash
 INFO: Analyzed target //:bin (0 packages loaded, 0 targets configured).
 INFO: Found 1 target...
@@ -71,4 +73,52 @@ $ find /home/pras/.cache/bazel/_bazel_pras/92b5a6b34dd09a1331f2af4192a3d949/exec
 # Execroot from a run of `@main_ws//:bin
 $ find /home/pras/.cache/bazel/_bazel_pras/df2aff05c573141092662ae5db828664/execroot/ | grep @ext
 /home/pras/.cache/bazel/_bazel_pras/df2aff05c573141092662ae5db828664/execroot/main_ws/node_modules/@ext
+```
+
+Furthermore, if we include a source file from `ext_ws` in a `js_library`,
+defined in `main_ws`, it will be omitted from the build.
+
+**`cd main_ws && bazel run //:bin2`**
+
+```bash
+INFO: Analyzed target //:bin2 (2 packages loaded, 4 targets configured).
+INFO: Found 1 target...
+Target //:bin2 up-to-date:
+  bazel-bin/bin2.sh
+  bazel-bin/bin2_loader.cjs
+  bazel-bin/bin2_require_patch.cjs
+INFO: Elapsed time: 0.209s, Critical Path: 0.01s
+INFO: 7 processes: 7 internal.
+INFO: Build completed successfully, 7 total actions
+INFO: Build completed successfully, 7 total actions
+Error: Cannot find module '@ext/ws/lib'
+Require stack:
+- /home/pras/.cache/bazel/_bazel_pras/df2aff05c573141092662ae5db828664/execroot/main_ws/bazel-out/k8-fastbuild/bin/bin2.sh.runfiles/main_ws/bin.js
+    at Function.Module._resolveFilename (node:internal/modules/cjs/loader:933:15)
+    at Function.Module._load (node:internal/modules/cjs/loader:778:27)
+    at Module.require (node:internal/modules/cjs/loader:1005:19)
+    at require (node:internal/modules/cjs/helpers:102:18)
+    at Object.<anonymous> (bin.js:1:13)
+    at Module._compile (node:internal/modules/cjs/loader:1105:14)
+    at Object.Module._extensions..js (node:internal/modules/cjs/loader:1159:10)
+    at Module.load (node:internal/modules/cjs/loader:981:32)
+    at Function.Module._load (node:internal/modules/cjs/loader:822:12)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:77:12)
+```
+
+If we inspect the execroot here, we can see that the module is created, but
+does not include source files from the external repository.
+
+```bash
+# Execroot from a run of `@main_ws//:bin2
+$ find -L /home/pras/.cache/bazel/_bazel_pras/df2aff05c573141092662ae5db828664/execroot/main_ws/bazel-out/k8-fastbuild/bin/bin.sh.runfiles/ | grep node_modules
+find: File system loop detected; ‘/home/pras/.cache/bazel/_bazel_pras/df2aff05c573141092662ae5db828664/execroot/main_ws/bazel-out/k8-fastbuild/bin/bin.sh.runfiles/main_ws/node_modules/@ext/ws/bin.sh.runfiles’ is part of the same file system loop as ‘/home/pras/.cache/bazel/_bazel_pras/df2aff05c573141092662ae5db828664/execroot/main_ws/bazel-out/k8-fastbuild/bin/bin.sh.runfiles/’.
+/home/pras/.cache/bazel/_bazel_pras/df2aff05c573141092662ae5db828664/execroot/main_ws/bazel-out/k8-fastbuild/bin/bin.sh.runfiles/main_ws/node_modules
+/home/pras/.cache/bazel/_bazel_pras/df2aff05c573141092662ae5db828664/execroot/main_ws/bazel-out/k8-fastbuild/bin/bin.sh.runfiles/main_ws/node_modules/@ext
+/home/pras/.cache/bazel/_bazel_pras/df2aff05c573141092662ae5db828664/execroot/main_ws/bazel-out/k8-fastbuild/bin/bin.sh.runfiles/main_ws/node_modules/@ext/ws
+/home/pras/.cache/bazel/_bazel_pras/df2aff05c573141092662ae5db828664/execroot/main_ws/bazel-out/k8-fastbuild/bin/bin.sh.runfiles/main_ws/node_modules/@ext/ws/bin_loader.cjs
+/home/pras/.cache/bazel/_bazel_pras/df2aff05c573141092662ae5db828664/execroot/main_ws/bazel-out/k8-fastbuild/bin/bin.sh.runfiles/main_ws/node_modules/@ext/ws/bin_require_patch.cjs
+/home/pras/.cache/bazel/_bazel_pras/df2aff05c573141092662ae5db828664/execroot/main_ws/bazel-out/k8-fastbuild/bin/bin.sh.runfiles/main_ws/node_modules/@ext/ws/bin.sh
+/home/pras/.cache/bazel/_bazel_pras/df2aff05c573141092662ae5db828664/execroot/main_ws/bazel-out/k8-fastbuild/bin/bin.sh.runfiles/main_ws/node_modules/@ext/ws/_bin.module_mappings.json
+/home/pras/.cache/bazel/_bazel_pras/df2aff05c573141092662ae5db828664/execroot/main_ws/bazel-out/k8-fastbuild/bin/bin.sh.runfiles/main_ws/node_modules/@ext/ws/bin.sh.runfiles_manifest
 ```

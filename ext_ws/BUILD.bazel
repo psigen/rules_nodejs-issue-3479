@@ -1,5 +1,9 @@
 load("@build_bazel_rules_nodejs//:index.bzl", "js_library", "nodejs_binary")
 
+exports_files([
+    "lib.js",
+])
+
 js_library(
     name = "lib",
     package_name = "@ext/ws",
