@@ -1,0 +1,7 @@
+load("@build_bazel_rules_nodejs//:index.bzl", "nodejs_binary")
+
+nodejs_binary(
+    name = "bin",
+    data = ["@ext_ws//:lib"],
+    entry_point = "bin.js",
+)

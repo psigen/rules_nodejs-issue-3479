@@ -1,0 +1,16 @@
+load("@build_bazel_rules_nodejs//:index.bzl", "js_library", "nodejs_binary")
+
+js_library(
+    name = "lib",
+    package_name = "@ext/ws",
+    srcs = [
+        "lib.js",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+nodejs_binary(
+    name = "bin",
+    data = [":lib"],
+    entry_point = "bin.js",
+)
